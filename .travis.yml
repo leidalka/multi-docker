@@ -1,0 +1,24 @@
+sudo: required
+services:
+  = docker
+
+before_install:
+  - docker build -t leidalka/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run leidalka/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t leidalka/multi-client ./client
+  - docker build -t leidalka/multi-nginx ./nginx
+  - docker build -t leidalka/multi-server ./server
+  - docker build -t leidalka/multi-worker ./worker
+  # Log in to the docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push leidalka/multi-client
+  - docker push leidalka/multi-nginx
+  - docker push leidalka/multi-server
+  - docker push leidalka/multi-worker
+
+  
